@@ -16,6 +16,7 @@ internal class DataBase
     private SqlConnection? _connection;
     private bool _state;
     public bool state { get { return _state; } }
+
     public void openConnection()
     {
         string connectionString = @"Data Source = (localdb)\MSSQLLocalDB; Initial Catalog = EmployeeDB; Integrated Security = True;";
@@ -74,35 +75,40 @@ internal class DataBase
                     sqlDataReader.Close();
                 }
             }
-        //closeConnection(); //работаем все время с открытой базой
+            //closeConnection(); //работаем все время с открытой базой
         }
         return LEmpl;
     }
 
-    public bool AddNewEmploee(MEmployee me) {
+    public void AddNewEmploee(MEmployee me)
+    {
         try
         {
-        SqlCommand command = new SqlCommand(
-                $"INSERT INTO [Employees] (FirstName, LastName, Email, DateOfBirth, Salary) VALUES (@FirstName, @LastName, @Email, @DateOfBirth, @Salary)",
-                _connection);
-        command.Parameters.AddWithValue("FirstName", me.FirstName);
-        command.Parameters.AddWithValue("LastName", me.LastName);
-        command.Parameters.AddWithValue("Email", me.Email);
-        command.Parameters.AddWithValue("DateOfBirth", me.DateOfBirth.ToDateTime(new TimeOnly()));
-        command.Parameters.AddWithValue("Salary", me.Salary);
-        if (command.ExecuteNonQuery() < 1)
-            return false;
-        return true;
+            SqlCommand command = new SqlCommand(
+                    $"INSERT INTO [Employees] (FirstName, LastName, Email, DateOfBirth, Salary) VALUES (@FirstName, @LastName, @Email, @DateOfBirth, @Salary)",
+                    _connection);
+            command.Parameters.AddWithValue("FirstName", me.FirstName);
+            command.Parameters.AddWithValue("LastName", me.LastName);
+            command.Parameters.AddWithValue("Email", me.Email);
+            command.Parameters.AddWithValue("DateOfBirth", me.DateOfBirth.ToDateTime(new TimeOnly()));
+            command.Parameters.AddWithValue("Salary", me.Salary);
+            if (command.ExecuteNonQuery() < 1)
+            {
+                _state = false;
+                return;
+            }
+
+            _state = true;
 
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
-            return false;
+            _state = false;
         }
     }
 
-    public bool DeleteEmploee(int id)
+    public void DeleteEmploee(int id)
     {
         if (_connection != null)
         {
@@ -111,48 +117,46 @@ internal class DataBase
                 SqlCommand command = new SqlCommand($"DELETE FROM Employees WHERE EmployeeID = {id}", _connection);
 
                 if (command.ExecuteNonQuery() < 1)
-                    return false;
+                {
+                    _state = false;
+                    return;
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return false;
+                _state = false;
+                return;
             }
         }
-
-        return true;
+        _state = true;
+        return;
     }
 
-    public bool UploadEmploee(int id)
+    public void UploadEmploee(MEmployee me)
     {
         if (_connection != null)
         {
             try
             {
-                //UPDATE Employees SET FirstName = 'fd', LastName = 'ij' WHERE EmployeeID = 2002
-                SqlCommand command = new SqlCommand($"SELECT* FROM Employees WHERE EmployeeID = {id}", _connection);
-                //SqlCommand command = new SqlCommand($"UPDATE Employees SET FirstName = '{}', LastName = '{}' WHERE EmployeeID = 2002{id}", _connection);
+                string cmd = $"UPDATE Employees SET FirstName = '{me.FirstName}', LastName = '{me.LastName}', Email = '{me.Email}', DateOfBirth = '{me.DateOfBirth}', Salary = '{me.Salary}' WHERE EmployeeID = {me.EmployeeID}";
+                SqlCommand command = new SqlCommand(cmd, _connection);
                 if (command.ExecuteNonQuery() < 1)
-                    return false;
+                {
+                    _state = false;
+                    return;
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return false;
+                _state = false;
+                return;
             }
         }
-
-        return true;
+        _state = true;
+        return;
     }
-
-
-
-
-
-
-
-
-
 
     public void closeConnection()
     {
@@ -162,15 +166,4 @@ internal class DataBase
         }
     }
 
-    public SqlConnection getConnection()
-    {
-        return _connection;
-    }
-
-    private void sendComand()
-    {
-        SqlDataAdapter adapter = new SqlDataAdapter(
-            "SELECT * FROM Products",
-            _connection);
-    }
 }

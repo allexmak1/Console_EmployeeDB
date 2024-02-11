@@ -20,30 +20,24 @@ while (true)
     switch (view.menuComand)
     {
         case 1:
-#if false
-            if (!dataBase.AddNewEmploee(view.AddEmployee()))
+#if true
+            dataBase.AddNewEmploee(view.AddEmployee());
 #else
-            MEmployee ds = new MEmployee { Salary = 22, FirstName = "dd" ,LastName = "ssa", Email = "gdd@dss.df", DateOfBirth = new DateOnly(2000, 10, 16) };
-            if (!dataBase.AddNewEmploee(ds))
+            MEmployee ds = new MEmployee { Salary = 22, FirstName = "dd", LastName = "ssa", Email = "gdd@dss.df", DateOfBirth = new DateOnly(2000, 10, 16) };
+            dataBase.AddNewEmploee(ds);
 #endif
-                view.notAddInDB();
-            else
-                view.AddInDB();
+            view.MessStatusProcess(dataBase.state);
             break;
         case 2:
             view.TableDB(dataBase.loadAll());
             break;
         case 3:
-            if(dataBase.UploadEmploee(view.UpdateEmployee()))
-                view.MessTrue();
-            else
-                view.MessFalse();
+            dataBase.UploadEmploee(view.UpdateEmployee());
+            view.MessStatusProcess(dataBase.state);
             break;
         case 4:
-            if (dataBase.DeleteEmploee(view.DeleteEmployee()))
-                view.MessTrue();
-            else
-                view.MessFalse();
+            dataBase.DeleteEmploee(view.DeleteEmployee());
+            view.MessStatusProcess(dataBase.state);
             break;
         default:
             view.ErrorWrite();

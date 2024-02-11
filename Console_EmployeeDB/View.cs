@@ -26,18 +26,24 @@ internal class View
         }
         return true;
     }
+
     public void Head()
     {
         Console.Clear();
         Console.WriteLine("Employee Data Base");
         Console.WriteLine("=======================\n");
     }
+
     public MEmployee AddEmployee()
     {
         Console.WriteLine(">> Введите нового сотрудника.");
+        return InputEmployee();
+    }
+
+    public MEmployee InputEmployee()
+    {
         MEmployee mEmployee = new MEmployee();
         string? tempStr;
-        // TODO вынести валидацию в отдельный класс
 
         while (true)
         {
@@ -108,13 +114,29 @@ internal class View
         Console.WriteLine("=======================\n");
     }
 
-    public int UpdateEmployee()
+    public MEmployee UpdateEmployee()
     {
+        MEmployee ME = new();
+        int EmployeeID;
         Console.WriteLine(">> Обновляем информацию сотрудника");
-        Console.WriteLine("Введите ID:");
-        int id = Convert.ToInt32(Console.ReadLine());
-        return id;
+        while (true)
+        {
+            Console.WriteLine("Введите ID:");
+            try
+            {
+                EmployeeID = Convert.ToInt32(Console.ReadLine());
+                break;
+            }
+            catch (Exception)
+            {
+                ErrorWrite();
+            }
+        }
+        ME = InputEmployee();
+        ME.EmployeeID = EmployeeID;
+        return ME;
     }
+
     public int DeleteEmployee()
     {
         Console.WriteLine(">> Удаление сотрудника.");
@@ -130,44 +152,36 @@ internal class View
         }
         return id;
     }
+
     public void ErrorWrite()
     {
         Console.WriteLine(">> Неправельный ввод.");
         Console.WriteLine("=======================\n");
     }
+
     public void ErrorConectDB()
     {
         Console.WriteLine(">> База данных не подключена !!");
         Console.WriteLine("=======================\n");
     }
+
     public void ConectDB()
     {
         Console.WriteLine(">> База данных подключена.");
         Console.WriteLine("=======================\n");
     }
 
-
-    public void notAddInDB()
+    public void MessStatusProcess(bool state)
     {
-        Console.WriteLine("Данные не добавленны !!");
-        Console.WriteLine("=======================\n");
-    }
-
-    public void AddInDB()
-    {
-        Console.WriteLine("Данные добавленны.");
-        Console.WriteLine("=======================\n");
-    }
-
-    public void MessTrue()
-    {
-        Console.WriteLine("Операция выполненна.");
-        Console.WriteLine("=======================\n");
-    }
-
-    public void MessFalse()
-    {
-        Console.WriteLine("Операцию не удалось выполнить!!");
-        Console.WriteLine("=======================\n");
+        if (state)
+        {
+            Console.WriteLine("Операция выполненна.");
+            Console.WriteLine("=======================\n");
+        }
+        else
+        {
+            Console.WriteLine("Операцию не удалось выполнить!!");
+            Console.WriteLine("=======================\n");
+        }
     }
 }
