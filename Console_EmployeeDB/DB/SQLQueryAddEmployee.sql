@@ -1,0 +1,1 @@
+﻿INSERT INTO Employees (FirstName, LastName, Email, DateOfBirth, Salary) VALUES('Fate', 'Scale', 'fs@gmail.com', '11/7/2001', 650);
