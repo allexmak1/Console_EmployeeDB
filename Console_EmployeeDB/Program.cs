@@ -20,7 +20,12 @@ while (true)
     switch (view.menuComand)
     {
         case 1:
+#if false
             if (!dataBase.AddNewEmploee(view.AddEmployee()))
+#else
+            MEmployee ds = new MEmployee { Salary = 22, FirstName = "dd" ,LastName = "ssa", Email = "gdd@dss.df", DateOfBirth = new DateOnly(2000, 10, 16) };
+            if (!dataBase.AddNewEmploee(ds))
+#endif
                 view.notAddInDB();
             else
                 view.AddInDB();
@@ -29,10 +34,16 @@ while (true)
             view.TableDB(dataBase.loadAll());
             break;
         case 3:
-            view.UpdateEmployee();
+            if(dataBase.UploadEmploee(view.UpdateEmployee()))
+                view.MessTrue();
+            else
+                view.MessFalse();
             break;
         case 4:
-            view.DeleteEmployee();
+            if (dataBase.DeleteEmploee(view.DeleteEmployee()))
+                view.MessTrue();
+            else
+                view.MessFalse();
             break;
         default:
             view.ErrorWrite();

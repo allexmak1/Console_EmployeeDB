@@ -7,6 +7,7 @@ using System.Data.SqlClient;
 using System.Data;
 using MySql.Data.MySqlClient;
 using Mysqlx.Datatypes;
+using Mysqlx.Crud;
 
 namespace Console_EmployeeDB;
 
@@ -22,7 +23,7 @@ internal class DataBase
         {
             _connection = new SqlConnection(connectionString);
             _connection.Open();
-            if (_connection.State == System.Data.ConnectionState.Open)
+            if (_connection.State == ConnectionState.Open)
             {
                 _state = true;
                 return;
@@ -38,7 +39,7 @@ internal class DataBase
 
     public List<MEmployee> loadAll()
     {
-        List<MEmployee> LE = new List<MEmployee>();
+        List<MEmployee> LEmpl = new List<MEmployee>();
         if (_connection != null)
         {
             SqlDataReader sqlDataReader = null;
@@ -59,7 +60,7 @@ internal class DataBase
                         DateOfBirth = DateOnly.FromDateTime(sqlDataReader.GetDateTime(4)),
                         Salary = sqlDataReader.GetDecimal(5)
                     };
-                    LE.Add(me);
+                    LEmpl.Add(me);
                 }
             }
             catch (Exception ex)
@@ -73,27 +74,76 @@ internal class DataBase
                     sqlDataReader.Close();
                 }
             }
+        //closeConnection(); //работаем все время с открытой базой
         }
-        return LE;
+        return LEmpl;
     }
 
     public bool AddNewEmploee(MEmployee me) {
+        try
+        {
         SqlCommand command = new SqlCommand(
-                $"INSERT INTO [Table1] (FirstName, LastName, Email, DateOfBirth, Salary) VALUES (@FirstName, @LastName, @Email, @DateOfBirth, @Salary)",
+                $"INSERT INTO [Employees] (FirstName, LastName, Email, DateOfBirth, Salary) VALUES (@FirstName, @LastName, @Email, @DateOfBirth, @Salary)",
                 _connection);
         command.Parameters.AddWithValue("FirstName", me.FirstName);
         command.Parameters.AddWithValue("LastName", me.LastName);
         command.Parameters.AddWithValue("Email", me.Email);
-        command.Parameters.AddWithValue("DateOfBirth", me.DateOfBirth);
+        command.Parameters.AddWithValue("DateOfBirth", me.DateOfBirth.ToDateTime(new TimeOnly()));
         command.Parameters.AddWithValue("Salary", me.Salary);
         if (command.ExecuteNonQuery() < 1)
             return false;
         return true;
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return false;
+        }
     }
 
+    public bool DeleteEmploee(int id)
+    {
+        if (_connection != null)
+        {
+            try
+            {
+                SqlCommand command = new SqlCommand($"DELETE FROM Employees WHERE EmployeeID = {id}", _connection);
 
+                if (command.ExecuteNonQuery() < 1)
+                    return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
 
+        return true;
+    }
 
+    public bool UploadEmploee(int id)
+    {
+        if (_connection != null)
+        {
+            try
+            {
+                //UPDATE Employees SET FirstName = 'fd', LastName = 'ij' WHERE EmployeeID = 2002
+                SqlCommand command = new SqlCommand($"SELECT* FROM Employees WHERE EmployeeID = {id}", _connection);
+                //SqlCommand command = new SqlCommand($"UPDATE Employees SET FirstName = '{}', LastName = '{}' WHERE EmployeeID = 2002{id}", _connection);
+                if (command.ExecuteNonQuery() < 1)
+                    return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
+        return true;
+    }
 
 
 
@@ -111,6 +161,7 @@ internal class DataBase
             _connection.Close();
         }
     }
+
     public SqlConnection getConnection()
     {
         return _connection;

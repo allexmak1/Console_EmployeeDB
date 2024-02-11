@@ -1,8 +1,4 @@
-﻿using System.Data.SqlClient;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-
-namespace Console_EmployeeDB;
+﻿namespace Console_EmployeeDB;
 
 internal class View
 {
@@ -47,9 +43,8 @@ internal class View
         {
             Console.WriteLine("Введите Имя:");
             tempStr = Console.ReadLine();
-            if (Regex.IsMatch(tempStr, @"^[а-яА-Яa-zA-Z][a-zA-Z0-9а-яА-Я-]+$", RegexOptions.IgnoreCase))
-                if (tempStr.Length <= 50)
-                    break;
+            if (Validation.isName(tempStr))
+                break;
             Console.WriteLine("Имя введено неверно!");
         }
         mEmployee.FirstName = tempStr;
@@ -59,9 +54,8 @@ internal class View
         {
             Console.WriteLine("Введите Фамилию:");
             tempStr = Console.ReadLine();
-            if (Regex.IsMatch(tempStr, @"^[а-яА-Яa-zA-Z][a-zA-Z0-9а-яА-Я-]+$", RegexOptions.IgnoreCase))
-                if (tempStr.Length <= 50)
-                    break;
+            if (Validation.isName(tempStr))
+                break;
             Console.WriteLine("Фамилия введена неверно!");
         }
         mEmployee.LastName = tempStr;
@@ -71,9 +65,8 @@ internal class View
         {
             Console.WriteLine("Введите адрес электронной почты:");
             tempStr = Console.ReadLine();
-            if (Regex.IsMatch(tempStr, @"([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)", RegexOptions.IgnoreCase))
-                if (tempStr.Length <= 100)
-                    break;
+            if (Validation.isEmail(tempStr))
+                break;
             Console.WriteLine("Email введено неверно!");
         }
         mEmployee.Email = tempStr;
@@ -83,7 +76,7 @@ internal class View
         {
             Console.WriteLine("Введите дату рождения:");
             tempStr = Console.ReadLine();
-            if (Regex.IsMatch(tempStr, @"(0?[1-9]|[12][0-9]|3[01]).(0?[1-9]|1[012]).((19|20)\d\d)", RegexOptions.IgnoreCase))
+            if (Validation.isDate(tempStr))
                 break;
             Console.WriteLine("Дата введена неверно!");
         }
@@ -94,9 +87,9 @@ internal class View
         {
             Console.WriteLine("Введите зарплату:");
             tempStr = Console.ReadLine();
-            if (Regex.IsMatch(tempStr, @"(^\d*\.?\d*$)", RegexOptions.IgnoreCase))//TODO ----------------
+            if (Validation.isDecimal(ref tempStr))
                 break;
-            Console.WriteLine("Email введена неверно!");
+            Console.WriteLine("Число введено неверно!");
         }
         mEmployee.Salary = Convert.ToDecimal(tempStr);
 
@@ -115,19 +108,27 @@ internal class View
         Console.WriteLine("=======================\n");
     }
 
-    public void UpdateEmployee()
+    public int UpdateEmployee()
     {
         Console.WriteLine(">> Обновляем информацию сотрудника");
         Console.WriteLine("Введите ID:");
         int id = Convert.ToInt32(Console.ReadLine());
-        Console.WriteLine("=======================\n");
+        return id;
     }
-    public void DeleteEmployee()
+    public int DeleteEmployee()
     {
         Console.WriteLine(">> Удаление сотрудника.");
         Console.WriteLine("Введите ID:");
-        int id = Convert.ToInt32(Console.ReadLine());
-        Console.WriteLine("=======================\n");
+        int id;
+        try
+        {
+            id = Convert.ToInt32(Console.ReadLine());
+        }
+        catch (Exception)
+        {
+            id = 0;
+        }
+        return id;
     }
     public void ErrorWrite()
     {
@@ -155,6 +156,18 @@ internal class View
     public void AddInDB()
     {
         Console.WriteLine("Данные добавленны.");
+        Console.WriteLine("=======================\n");
+    }
+
+    public void MessTrue()
+    {
+        Console.WriteLine("Операция выполненна.");
+        Console.WriteLine("=======================\n");
+    }
+
+    public void MessFalse()
+    {
+        Console.WriteLine("Операцию не удалось выполнить!!");
         Console.WriteLine("=======================\n");
     }
 }
