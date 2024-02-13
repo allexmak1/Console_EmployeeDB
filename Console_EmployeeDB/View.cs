@@ -1,8 +1,18 @@
 ﻿namespace Console_EmployeeDB;
 
-internal class View
+class View
 {
-    public int menuComand { get; set; } = 0;
+    private int _menuComand;
+
+    public int menuComand { get { return _menuComand; } }
+
+    public void Head()
+    {
+        Console.Clear();
+        Console.WriteLine("Employee Data Base");
+        Console.WriteLine("=======================\n");
+    }
+
     public bool Menu()
     {
         Console.WriteLine("Меню:");
@@ -13,7 +23,7 @@ internal class View
         Console.WriteLine("5: Закрыть приложение.");
         try
         {
-            menuComand = Convert.ToInt32(Console.ReadLine());
+            _menuComand = Convert.ToInt32(Console.ReadLine());
         }
         catch (Exception)
         {
@@ -27,161 +37,119 @@ internal class View
         return true;
     }
 
-    public void Head()
-    {
-        Console.Clear();
-        Console.WriteLine("Employee Data Base");
-        Console.WriteLine("=======================\n");
-    }
-
-    public MEmployee AddEmployee()
+    public MEmployee MenuAddEmployee()
     {
         Console.WriteLine(">> Введите нового сотрудника.");
-        return InputEmployee();
+        return InputEmployee(new MEmployee());
     }
 
-    public MEmployee InputEmployee()
-    {
-        MEmployee mEmployee = new MEmployee();
-        string? tempStr;
-
-        while (true)
-        {
-            Console.WriteLine("Введите Имя:");
-            tempStr = Console.ReadLine();
-            if (Validation.isName(tempStr))
-                break;
-            Console.WriteLine("Имя введено неверно!");
-        }
-        mEmployee.FirstName = tempStr;
-
-
-        while (true)
-        {
-            Console.WriteLine("Введите Фамилию:");
-            tempStr = Console.ReadLine();
-            if (Validation.isName(tempStr))
-                break;
-            Console.WriteLine("Фамилия введена неверно!");
-        }
-        mEmployee.LastName = tempStr;
-
-
-        while (true)
-        {
-            Console.WriteLine("Введите адрес электронной почты:");
-            tempStr = Console.ReadLine();
-            if (Validation.isEmail(tempStr))
-                break;
-            Console.WriteLine("Email введено неверно!");
-        }
-        mEmployee.Email = tempStr;
-
-
-        while (true)
-        {
-            Console.WriteLine("Введите дату рождения:");
-            tempStr = Console.ReadLine();
-            if (Validation.isDate(tempStr))
-                break;
-            Console.WriteLine("Дата введена неверно!");
-        }
-        mEmployee.DateOfBirth = DateOnly.FromDateTime(Convert.ToDateTime(tempStr));
-
-
-        while (true)
-        {
-            Console.WriteLine("Введите зарплату:");
-            tempStr = Console.ReadLine();
-            if (Validation.isDecimal(ref tempStr))
-                break;
-            Console.WriteLine("Число введено неверно!");
-        }
-        mEmployee.Salary = Convert.ToDecimal(tempStr);
-
-        return mEmployee;
-    }
-
-    public void TableDB(List<MEmployee> LE)
+    public void MenuAllEmployee(List<MEmployee> LE)
     {
         Console.WriteLine(">> Сотрудники:");
-        Console.WriteLine("=======================");
-        Console.WriteLine("id\tИмя\tФамилия\temail\t\tдата рождения\tзарплата");
-        foreach (var row in LE)
-        {
-            Console.WriteLine($"{row.EmployeeID}\t{row.FirstName}\t{row.LastName}\t{row.Email}\t{row.DateOfBirth}\t{row.Salary}");
-        }
-        Console.WriteLine("=======================\n");
+        DB(LE);
     }
 
-    public MEmployee UpdateEmployee()
+    public MEmployee MenuUpdateEmployee()
     {
-        MEmployee ME = new();
-        int EmployeeID;
         Console.WriteLine(">> Обновляем информацию сотрудника");
+        MEmployee me = new MEmployee();
+        me.EmployeeID = Convert.ToInt32(InputAndValidation("ID", new EmployeeID()));
+        InputEmployee(me);
+        return me;
+    }
+
+    public int MenuDeleteEmployee()
+    {
+        Console.WriteLine(">> Удаление сотрудника.");
+        return Convert.ToInt32(InputAndValidation("ID", new EmployeeID()));
+    }
+
+
+    // метод ввода
+    private MEmployee InputEmployee(MEmployee me)
+    {
+
+        try
+        {
+            me.FirstName = InputAndValidation("Имя", new FirstName());
+            me.LastName = InputAndValidation("Фамилию", new FirstName());
+            me.Email = InputAndValidation("адрес электронной почты", new Email());
+            //me.DateOfBirth = DateOnly.FromDateTimeConvert.ToDateTime(InputAndValidation("дату рождения", new Date())));
+            me.DateOfBirth = Convert.ToDateTime(InputAndValidation("дату рождения", new Date()));
+            me.Salary = Convert.ToDecimal(InputAndValidation("зарплату", new Salary()));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Data);
+            Console.WriteLine(">>! Конвертация не удалась!");
+            return me;
+        }
+
+        //вывод на экран
+        Console.WriteLine(">> Итоговая строка: ");
+        DB(new List<MEmployee> { me });
+        return me;
+    }
+
+    // повторный ввод
+    protected string InputAndValidation(string column, IValidation v)
+    {
+        string readline = default(string);
         while (true)
         {
-            Console.WriteLine("Введите ID:");
+            Console.WriteLine(">> Введите " + column + ":");
             try
             {
-                EmployeeID = Convert.ToInt32(Console.ReadLine());
-                break;
+                if (v.Validate(ref readline, Console.ReadLine()))
+                    break;
+                ErrorWrite();
             }
             catch (Exception)
             {
                 ErrorWrite();
             }
         }
-        ME = InputEmployee();
-        ME.EmployeeID = EmployeeID;
-        return ME;
+        return readline;
     }
 
-    public int DeleteEmployee()
+    //вывод бд
+    private void DB(List<MEmployee> LE)
     {
-        Console.WriteLine(">> Удаление сотрудника.");
-        Console.WriteLine("Введите ID:");
-        int id;
-        try
+        Console.WriteLine("=======================");
+        Console.WriteLine("id\tИмя\tФамилия\temail\t\tдата рождения\t\tзарплата");
+        foreach (var row in LE)
         {
-            id = Convert.ToInt32(Console.ReadLine());
+            //Console.WriteLine($"{row.EmployeeID}\t{row.FirstName}\t{row.LastName}\t{row.Email}\t{row.DateOfBirth}\t{row.Salary}");
+            Console.WriteLine(row.EmployeeID + "\t" + row.FirstName + "\t" + row.LastName + "\t" + row.Email + "\t" + row.DateOfBirth + "\t" + row.Salary);
         }
-        catch (Exception)
-        {
-            id = 0;
-        }
-        return id;
+        Console.WriteLine("=======================\n");
     }
+
+
 
     public void ErrorWrite()
     {
-        Console.WriteLine(">> Неправельный ввод.");
-        Console.WriteLine("=======================\n");
+        Console.WriteLine(">>! Неверный формат ввода.");
     }
 
-    public void ErrorConectDB()
-    {
-        Console.WriteLine(">> База данных не подключена !!");
-        Console.WriteLine("=======================\n");
-    }
-
-    public void ConectDB()
-    {
-        Console.WriteLine(">> База данных подключена.");
-        Console.WriteLine("=======================\n");
-    }
-
-    public void MessStatusProcess(bool state)
+    public void ConectDB(bool state)
     {
         if (state)
-        {
-            Console.WriteLine("Операция выполненна.");
-            Console.WriteLine("=======================\n");
-        }
+            Console.WriteLine(">> База данных подключена.");
+
         else
-        {
-            Console.WriteLine("Операцию не удалось выполнить!!");
-            Console.WriteLine("=======================\n");
-        }
+            Console.WriteLine(">>! База данных не подключена !!");
+        Console.WriteLine("=======================\n");
     }
+
+    public void StatusOperation(bool state)
+    {
+        if (state)
+            Console.WriteLine(">> Операция выполненна.");
+        else
+            Console.WriteLine(">>! Операцию не удалось выполнить !!");
+        Console.WriteLine("=======================\n");
+    }
+
+    public void ErrorNotId() { Console.WriteLine(">>! Не найден ID !!"); }
 }

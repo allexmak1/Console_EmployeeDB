@@ -2,37 +2,80 @@
 
 namespace Console_EmployeeDB;
 
-internal class Validation
-{
-    public static bool isName(string text)
-    {
-        if (Regex.IsMatch(text, @"^[а-яА-Яa-zA-Z][a-zA-Z0-9а-яА-Я-]+$", RegexOptions.IgnoreCase))
-            if (text.Length <= 50)
-                return true;
-        return false;
-    }
 
-    public static bool isEmail(string text)
+class EmployeeID : IValidation
+{
+    public bool Validate(ref string output, string input)
     {
-        if (Regex.IsMatch(text, @"([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)", RegexOptions.IgnoreCase))
-            if (text.Length <= 100)
-                return true;
-        return false;
-    }
-    public static bool isDate(string text)
-    {
-        if (Regex.IsMatch(text, @"(0?[1-9]|[12][0-9]|3[01]).(0?[1-9]|1[012]).((19|20)\d\d)", RegexOptions.IgnoreCase))
+        if (Regex.IsMatch(input, @"^[0-9]+$", RegexOptions.IgnoreCase))
+        {
+            input = Regex.Replace(input, @"\D", "");
+            int temp = Convert.ToInt32(input);
+            output = input;
             return true;
+        }
         return false;
     }
-    public static bool isDecimal(ref string text)
+}
+
+class FirstName : IValidation
+{
+    public bool Validate(ref string output, string input)
     {
-        if (Regex.IsMatch(text, @"(^\d*.?\d*$)", RegexOptions.IgnoreCase))
-            if (text.Length <= 15)
-            {
-                text = Regex.Replace(text, "([.]+)", ",");
-                return true;
-            }
+        if (Regex.IsMatch(input, @"^[а-яА-Яa-zA-Z][a-zA-Z0-9а-яА-Я-]+$", RegexOptions.IgnoreCase) &&
+            input.Length <= 50)
+        {
+            output = input;
+            return true;
+        }
+        return false;
+    }
+}
+
+
+class Email : IValidation
+{
+    public bool Validate(ref string output, string input)
+    {
+        if (Regex.IsMatch(input, @"([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)", RegexOptions.IgnoreCase) &&
+            input.Length <= 100)
+        {
+            output = input;
+            return true;
+        }
+        return false;
+    }
+}
+
+
+class Date : IValidation
+{
+    public bool Validate(ref string output, string input)
+    {
+        if (Regex.IsMatch(input, @"(0?[1-9]|[12][0-9]|3[01]).(0?[1-9]|1[012]).((19|20)\d\d)", RegexOptions.IgnoreCase))
+        {
+            //DateOnly temp = DateOnly.FromDateTime(Convert.ToDateTime(input));// сделанно для вызова Exception
+            DateTime temp = Convert.ToDateTime(input);// сделанно для вызова Exception
+            output = input;
+            return true;
+        }
+        return false;
+    }
+}
+
+
+class Salary : IValidation
+{
+    public bool Validate(ref string output, string input)
+    {
+        if (Regex.IsMatch(input, @"(^\d*.?\d*$)", RegexOptions.IgnoreCase) &&
+            input.Length <= 15)
+        {
+            input = Regex.Replace(input, "([.]+)", ",");
+            decimal temp = Convert.ToDecimal(input);// сделанно для вызова Exception
+            output = input;
+            return true;
+        }
         return false;
     }
 }

@@ -1,47 +1,65 @@
-﻿using Console_EmployeeDB;
+﻿namespace Console_EmployeeDB;
 
-View view = new();
-DataBase dataBase = new();
-
-view.Head();
-dataBase.openConnection();
-if (!dataBase.state)
+class Program
 {
-    view.ErrorConectDB();
-    return;
-}
-view.ConectDB();
-if (!view.Menu()) return;
-
-
-while (true)
-{
-    view.Head();
-    switch (view.menuComand)
+    static void Main(string[] args)
     {
-        case 1:
-#if true
-            dataBase.AddNewEmploee(view.AddEmployee());
-#else
-            MEmployee ds = new MEmployee { Salary = 22, FirstName = "dd", LastName = "ssa", Email = "gdd@dss.df", DateOfBirth = new DateOnly(2000, 10, 16) };
-            dataBase.AddNewEmploee(ds);
-#endif
-            view.MessStatusProcess(dataBase.state);
-            break;
-        case 2:
-            view.TableDB(dataBase.loadAll());
-            break;
-        case 3:
-            dataBase.UploadEmploee(view.UpdateEmployee());
-            view.MessStatusProcess(dataBase.state);
-            break;
-        case 4:
-            dataBase.DeleteEmploee(view.DeleteEmployee());
-            view.MessStatusProcess(dataBase.state);
-            break;
-        default:
-            view.ErrorWrite();
-            break;
+
+        View view = new View();
+        DBsql DB = new DBsql(@"Data Source = (localdb)\MSSQLLocalDB; Initial Catalog = EmployeeDB; Integrated Security = True;");
+
+        view.Head();
+        DB.openConnection();
+        view.ConectDB(DB.stateComand);
+        if (!DB.stateComand)
+        {
+            Console.ReadKey();
+            return;
+        }
+        if (!view.Menu())
+        {
+            DB.closeConnection();
+            return;
+        }
+        while (true)
+        {
+            view.Head();
+            switch (view.menuComand)
+            {
+                case 1:
+                    DB.AddRowComand(view.MenuAddEmployee());
+                    view.StatusOperation(DB.stateComand);
+                    break;
+                case 2:
+                    view.MenuAllEmployee(DB.getAllRowComand());
+                    view.StatusOperation(DB.stateComand);
+                    break;
+                case 3:
+                    DB.uploadComand(view.MenuUpdateEmployee());
+                    view.StatusOperation(DB.stateComand);
+                    break;
+                case 4:
+                    int id = view.MenuDeleteEmployee();
+                    //TODO добавить проверку на наличие id
+                    if (DB.findId(id))
+                    {
+                        DB.deleteComand(id);
+                        view.StatusOperation(DB.stateComand);
+                    }
+                    else
+                    {
+                        view.ErrorNotId();
+                    }
+                    break;
+                default:
+                    view.ErrorWrite();
+                    break;
+            }
+            if (!view.Menu())
+            {
+                DB.closeConnection();
+                return;
+            }
+        }
     }
-    if (!view.Menu()) return;
 }

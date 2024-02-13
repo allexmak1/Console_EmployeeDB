@@ -1,25 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SqlClient;
+﻿using System.Data.SqlClient;
 using System.Data;
-using MySql.Data.MySqlClient;
-using Mysqlx.Datatypes;
-using Mysqlx.Crud;
+using System.Linq;
 
 namespace Console_EmployeeDB;
 
-internal class DataBase
+class DBsql
 {
+    private string connectionString { get; set; }
     private SqlConnection? _connection;
     private bool _state;
-    public bool state { get { return _state; } }
+    public bool stateComand { get { return _state; } }
+    public DBsql(string connection)
+    {
+        connectionString = connection;
+    }
 
     public void openConnection()
     {
-        string connectionString = @"Data Source = (localdb)\MSSQLLocalDB; Initial Catalog = EmployeeDB; Integrated Security = True;";
         try
         {
             _connection = new SqlConnection(connectionString);
@@ -38,8 +35,49 @@ internal class DataBase
         _state = false;
     }
 
-    public List<MEmployee> loadAll()
+    public void closeConnection()
     {
+        if (_connection?.State == ConnectionState.Open)
+        {
+            _connection.Close();
+            _state = true;
+            return;
+        }
+        _state = false;
+    }
+
+    public void AddRowComand(MEmployee me)
+    {
+        try
+        {
+            SqlCommand command = new SqlCommand(
+                    $"INSERT INTO [Employees] (FirstName, LastName, Email, DateOfBirth, Salary) VALUES (@FirstName, @LastName, @Email, @DateOfBirth, @Salary)",
+                    _connection);
+            command.Parameters.AddWithValue("FirstName", me.FirstName);
+            command.Parameters.AddWithValue("LastName", me.LastName);
+            command.Parameters.AddWithValue("Email", me.Email);
+            command.Parameters.AddWithValue("DateOfBirth", me.DateOfBirth);
+            command.Parameters.AddWithValue("Salary", me.Salary);
+            if (command.ExecuteNonQuery() < 1)
+            {
+                _state = false;
+                return;
+            }
+
+            _state = true;
+            return;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            _state = false;
+        }
+        _state = false;
+    }
+
+    public List<MEmployee> getAllRowComand()
+    {
+        _state = false;
         List<MEmployee> LEmpl = new List<MEmployee>();
         if (_connection != null)
         {
@@ -58,11 +96,12 @@ internal class DataBase
                         FirstName = sqlDataReader.GetString(1),
                         LastName = sqlDataReader.GetString(2),
                         Email = sqlDataReader.GetString(3),
-                        DateOfBirth = DateOnly.FromDateTime(sqlDataReader.GetDateTime(4)),
+                        DateOfBirth = sqlDataReader.GetDateTime(4),
                         Salary = sqlDataReader.GetDecimal(5)
                     };
                     LEmpl.Add(me);
                 }
+                _state = true;
             }
             catch (Exception ex)
             {
@@ -75,95 +114,71 @@ internal class DataBase
                     sqlDataReader.Close();
                 }
             }
-            //closeConnection(); //работаем все время с открытой базой
         }
+        return LEmpl;
+
+
+
+
+
+        _state = false;
         return LEmpl;
     }
 
-    public void AddNewEmploee(MEmployee me)
+    public void uploadComand(MEmployee me)
     {
-        try
-        {
-            SqlCommand command = new SqlCommand(
-                    $"INSERT INTO [Employees] (FirstName, LastName, Email, DateOfBirth, Salary) VALUES (@FirstName, @LastName, @Email, @DateOfBirth, @Salary)",
-                    _connection);
-            command.Parameters.AddWithValue("FirstName", me.FirstName);
-            command.Parameters.AddWithValue("LastName", me.LastName);
-            command.Parameters.AddWithValue("Email", me.Email);
-            command.Parameters.AddWithValue("DateOfBirth", me.DateOfBirth.ToDateTime(new TimeOnly()));
-            command.Parameters.AddWithValue("Salary", me.Salary);
-            if (command.ExecuteNonQuery() < 1)
-            {
-                _state = false;
-                return;
-            }
-
-            _state = true;
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            _state = false;
-        }
-    }
-
-    public void DeleteEmploee(int id)
-    {
+        _state = false;
         if (_connection != null)
         {
             try
             {
+                //string cmd = $"UPDATE Employees SET FirstName = '{me.FirstName}', LastName = '{me.LastName}', Email = '{me.Email}', DateOfBirth = '{me.DateOfBirth}', Salary = '{me.Salary}' WHERE EmployeeID = {me.EmployeeID}";
+                //SqlCommand command = new SqlCommand(cmd, _connection);
+
+                SqlCommand command = new SqlCommand(
+                $"UPDATE Employees SET FirstName = '{me.FirstName}', LastName = '{me.LastName}', Email = '{me.Email}', DateOfBirth = '{me.DateOfBirth}', Salary = '{me.Salary}' WHERE EmployeeID = {me.EmployeeID}",
+                        _connection);
+                if (command.ExecuteNonQuery() < 1)
+                {
+                    return;
+                }
+                _state = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return;
+            }
+        }
+    }
+
+    public void deleteComand(int id)
+    {
+
+        if (_connection != null)
+        {
+            try
+            {
+                _state = false;
                 SqlCommand command = new SqlCommand($"DELETE FROM Employees WHERE EmployeeID = {id}", _connection);
 
                 if (command.ExecuteNonQuery() < 1)
                 {
-                    _state = false;
                     return;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                _state = false;
                 return;
             }
         }
         _state = true;
-        return;
     }
 
-    public void UploadEmploee(MEmployee me)
+    public bool findId(int id)
     {
-        if (_connection != null)
-        {
-            try
-            {
-                string cmd = $"UPDATE Employees SET FirstName = '{me.FirstName}', LastName = '{me.LastName}', Email = '{me.Email}', DateOfBirth = '{me.DateOfBirth}', Salary = '{me.Salary}' WHERE EmployeeID = {me.EmployeeID}";
-                SqlCommand command = new SqlCommand(cmd, _connection);
-                if (command.ExecuteNonQuery() < 1)
-                {
-                    _state = false;
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                _state = false;
-                return;
-            }
-        }
-        _state = true;
-        return;
+        Console.WriteLine("...db findId");
+        return true;
     }
-
-    public void closeConnection()
-    {
-        if (_connection?.State == System.Data.ConnectionState.Open)
-        {
-            _connection.Close();
-        }
-    }
-
 }
